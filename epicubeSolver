@@ -1,0 +1,192 @@
+#!/usr/bin/python3
+
+import random
+
+class RubiksCube:
+    def __init__(self):
+        self.cube = [
+            [['W', 'W', 'W'], ['W', 'W', 'W'], ['W', 'W', 'W']],
+            [['O', 'O', 'O'], ['O', 'O', 'O'], ['O', 'O', 'O']],
+            [['G', 'G', 'G'], ['G', 'G', 'G'], ['G', 'G', 'G']],
+            [['R', 'R', 'R'], ['R', 'R', 'R'], ['R', 'R', 'R']],
+            [['B', 'B', 'B'], ['B', 'B', 'B'], ['B', 'B', 'B']],
+            [['Y', 'Y', 'Y'], ['Y', 'Y', 'Y'], ['Y', 'Y', 'Y']]
+        ]
+
+    def reset(self):
+        self.__init__()
+
+    def rotate_face(self, index):
+        new_face = [['', '', ''], ['', '', ''], ['', '', '']]
+        face = self.cube[index]
+        for row in range(3):
+            for col in range(3):
+                new_face[col][2 - row] = face[row][col]
+        self.cube[index] = new_face
+
+# face:
+#     T
+#   L F R B
+#     D
+    def rotate(self, face, direction):
+        if (direction == "counter-clockwise"):
+            self.rotate(face, "clockwise")
+            self.rotate(face, "clockwise")
+            self.rotate(face, "clockwise")
+            return
+        if face == 'T':
+            self.rotate_face(self.get_face('T'))
+            line = self.cube[self.get_face('F')][0]
+            self.cube[self.get_face('F')][0] = self.cube[self.get_face('R')][0]
+            self.cube[self.get_face('R')][0] = self.cube[self.get_face('B')][0]
+            self.cube[self.get_face('B')][0] = self.cube[self.get_face('L')][0]
+            self.cube[self.get_face('L')][0] = line
+        if face == 'D':
+            self.rotate_face(self.get_face('D'))
+            line = self.cube[self.get_face('F')][2]
+            self.cube[self.get_face('F')][2] = self.cube[self.get_face('L')][2]
+            self.cube[self.get_face('L')][2] = self.cube[self.get_face('B')][2]
+            self.cube[self.get_face('B')][2] = self.cube[self.get_face('R')][2]
+            self.cube[self.get_face('R')][2] = line
+        if face == 'F':
+            self.rotate_face(self.get_face('F'))
+            line = [self.cube[self.get_face('T')][2][0], self.cube[self.get_face('T')][2][1], self.cube[self.get_face('T')][2][2]]
+            self.cube[self.get_face('T')][0][0] = self.cube[self.get_face('R')][0][2]
+            self.cube[self.get_face('T')][0][1] = self.cube[self.get_face('R')][1][2]
+            self.cube[self.get_face('T')][0][2] = self.cube[self.get_face('R')][2][2]
+            self.cube[self.get_face('R')][0][2] = self.cube[self.get_face('D')][2][2]
+            self.cube[self.get_face('R')][1][2] = self.cube[self.get_face('D')][2][1]
+            self.cube[self.get_face('R')][2][2] = self.cube[self.get_face('D')][2][0]
+            self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('L')][2][0]
+            self.cube[self.get_face('D')][0][1] = self.cube[self.get_face('L')][1][0]
+            self.cube[self.get_face('D')][0][2] = self.cube[self.get_face('L')][0][0]
+            self.cube[self.get_face('L')][2][0] = line[0]
+            self.cube[self.get_face('L')][1][0] = line[1]
+            self.cube[self.get_face('L')][0][0] = line[2]
+        if face == 'B':
+            self.rotate_face(self.get_face('B'))
+            line = [self.cube[self.get_face('T')][0][0], self.cube[self.get_face('T')][0][1], self.cube[self.get_face('T')][0][2]]
+            self.cube[self.get_face('T')][0][0] = self.cube[self.get_face('R')][0][2]
+            self.cube[self.get_face('T')][0][1] = self.cube[self.get_face('R')][1][2]
+            self.cube[self.get_face('T')][0][2] = self.cube[self.get_face('R')][2][2]
+            self.cube[self.get_face('R')][0][2] = self.cube[self.get_face('D')][2][2]
+            self.cube[self.get_face('R')][1][2] = self.cube[self.get_face('D')][2][1]
+            self.cube[self.get_face('R')][2][2] = self.cube[self.get_face('D')][2][0]
+            self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('L')][0][0]
+            self.cube[self.get_face('D')][2][1] = self.cube[self.get_face('L')][1][0]
+            self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('L')][2][0]
+            self.cube[self.get_face('L')][2][0] = line[0]
+            self.cube[self.get_face('L')][1][0] = line[1]
+            self.cube[self.get_face('L')][0][0] = line[2]
+        if face == 'L':
+            self.rotate_face(self.get_face('L'))
+            line = [self.cube[self.get_face('T')][0][0], self.cube[self.get_face('T')][1][0], self.cube[self.get_face('T')][2][0]]
+            self.cube[self.get_face('T')][0][0] = self.cube[self.get_face('B')][2][2]
+            self.cube[self.get_face('T')][1][0] = self.cube[self.get_face('B')][1][2]
+            self.cube[self.get_face('T')][2][0] = self.cube[self.get_face('B')][0][2]
+            self.cube[self.get_face('B')][0][2] = self.cube[self.get_face('D')][2][0]
+            self.cube[self.get_face('B')][1][2] = self.cube[self.get_face('D')][1][0]
+            self.cube[self.get_face('B')][2][2] = self.cube[self.get_face('D')][0][0]
+            self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('F')][0][0]
+            self.cube[self.get_face('D')][1][0] = self.cube[self.get_face('F')][1][0]
+            self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('F')][2][0]
+            self.cube[self.get_face('F')][0][0] = line[0]
+            self.cube[self.get_face('F')][1][0] = line[1]
+            self.cube[self.get_face('F')][2][0] = line[2]
+        if face == 'R':
+            self.rotate_face(self.get_face('R'))
+            line = [self.cube[self.get_face('T')][0][2], self.cube[self.get_face('T')][1][2], self.cube[self.get_face('T')][2][2]]
+            self.cube[self.get_face('T')][0][2] = self.cube[self.get_face('F')][0][2]
+            self.cube[self.get_face('T')][1][2] = self.cube[self.get_face('F')][1][2]
+            self.cube[self.get_face('T')][2][2] = self.cube[self.get_face('F')][2][2]
+            self.cube[self.get_face('F')][0][2] = self.cube[self.get_face('D')][0][2]
+            self.cube[self.get_face('F')][1][2] = self.cube[self.get_face('D')][1][2]
+            self.cube[self.get_face('F')][2][2] = self.cube[self.get_face('D')][2][2]
+            self.cube[self.get_face('D')][0][2] = self.cube[self.get_face('B')][2][0]
+            self.cube[self.get_face('D')][1][2] = self.cube[self.get_face('B')][1][0]
+            self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('B')][0][0]
+            self.cube[self.get_face('B')][0][0] = line[2]
+            self.cube[self.get_face('B')][1][0] = line[1]
+            self.cube[self.get_face('B')][2][0] = line[0]
+
+    def show(self):
+        def print_face(face):
+            for row in range(3):
+                print("            ", end=' ');
+                for col in range(3):
+                    color = self.get_color(face[row][col])
+                    print(f"\033[{color}m■\033[0m", end=' ')
+                print()
+            print()
+        print("-" * 12, end='')
+        print(" Rubik's Cube ", end='')
+        print("-" * 12)
+        print()
+        print_face(self.cube[0])
+        for row in range(3):
+            print("     ", end=' ');
+            for index in range(1, 5):
+                face = self.cube[index]
+                for col in range(3):
+                    color = self.get_color(face[row][col])
+                    print(f"\033[{color}m■\033[0m", end=' ')
+                print(end=' ')
+            print()
+        print()
+        print_face(self.cube[5])
+        print("-" * 12, end='')
+        print("--------------", end='')
+        print("-" * 12)
+
+    def get_color(self, sticker):
+        colors = {'W': '97', 'R': '91', 'G': '92', 'O': '95', 'B': '94', 'Y': '93'}
+        return colors[sticker]
+
+    def get_face(self, face):
+        faces = {0: 'T', 1: 'L', 2: 'F', 3: 'R', 4: 'B', 5: 'D'}
+        if isinstance(face, int):
+            return faces.get(face)
+        else:
+            for index, label in faces.items():
+                if label == face:
+                    return index
+        return None
+
+    def shuffle(self, moves):
+        all = []
+        all_possible_moves = ['T', 'L', 'F', 'R', 'B', 'D']
+        possible_moves = ['T', 'L', 'F', 'R', 'B', 'D']
+        for _ in range(moves):
+            rep = random.randint(1, 3)
+            face = random.choice(possible_moves)
+            move = f"{face}"
+            if rep == 2:
+                move += '2'
+            elif rep == 3:
+                move += "'"
+            all.append(move)
+            possible_moves = all_possible_moves.copy()
+            possible_moves.remove(face)
+        return all
+
+    def do_move(self, move):
+        face = move[0]
+        if len(move) == 1:
+            self.rotate(face, 'clockwise')
+        elif move[1] == '2':
+            self.rotate(face, 'clockwise')
+            self.rotate(face, 'clockwise')
+        elif move[1] == "'":
+            self.rotate(face, 'counter-clockwise')
+
+cube = RubiksCube()
+cube.show()
+# moves = cube.shuffle(4)
+
+moves = ["T2", "B2", "L"]
+for move in moves:
+    cube.do_move(move)
+    print(move)
+    cube.show()
+print("Final state:")
+cube.show()
