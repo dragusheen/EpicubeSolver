@@ -1,65 +1,155 @@
-#!/usr/bin/python3
-
+from rich.panel import Panel
 from rich import print
 
-from rich.live import Live
-from rich.panel import Panel
-
+from enum import Enum
 import random
+
+class RubiksColor(Enum):
+    UNDEFINED   = 0
+    BLUE        = 1
+    GREEN       = 2
+    ORANGE      = 3
+    RED         = 4
+    WHITE       = 5
+    YELLOW      = 6
 
 BOX = "■"
 
 COLORS = {
-    "BLUE": "[purple3]",
-    "GREEN": "[green3]",
-    "ORANGE": "[dark_orange3]",
-    "RED": "[red3]",
-    "WHITE": "[white]",
-    "YELLOW": "[yellow2]",
-    "RESET": "[/]"
+    RubiksColor.BLUE: "[purple3]",
+    RubiksColor.GREEN: "[green3]",
+    RubiksColor.ORANGE: "[dark_orange3]",
+    RubiksColor.RED: "[red3]",
+    RubiksColor.WHITE: "[white]",
+    RubiksColor.YELLOW: "[yellow2]",
+    RubiksColor.UNDEFINED: "[/]"
 }
 
 BOXES = {
-    "BLUE": COLORS["BLUE"] + BOX + COLORS["RESET"],
-    "GREEN": COLORS["GREEN"] + BOX + COLORS["RESET"],
-    "ORANGE": COLORS["ORANGE"] + BOX + COLORS["RESET"],
-    "RED": COLORS["RED"] + BOX + COLORS["RESET"],
-    "WHITE": COLORS["WHITE"] + BOX + COLORS["RESET"],
-    "YELLOW": COLORS["YELLOW"] + BOX + COLORS["RESET"]
+    RubiksColor.BLUE: COLORS[RubiksColor.BLUE] + BOX + COLORS[RubiksColor.UNDEFINED],
+    RubiksColor.GREEN: COLORS[RubiksColor.GREEN] + BOX + COLORS[RubiksColor.UNDEFINED],
+    RubiksColor.ORANGE: COLORS[RubiksColor.ORANGE] + BOX + COLORS[RubiksColor.UNDEFINED],
+    RubiksColor.RED: COLORS[RubiksColor.RED] + BOX + COLORS[RubiksColor.UNDEFINED],
+    RubiksColor.WHITE: COLORS[RubiksColor.WHITE] + BOX + COLORS[RubiksColor.UNDEFINED],
+    RubiksColor.YELLOW: COLORS[RubiksColor.YELLOW] + BOX + COLORS[RubiksColor.UNDEFINED]
 }
 
-DISPLAY_RC = [
-    [['WHITE', 'WHITE', 'WHITE'], ['WHITE', 'WHITE', 'WHITE'], ['WHITE', 'WHITE', 'WHITE']],
-    [['ORANGE', 'ORANGE', 'ORANGE'], ['ORANGE', 'ORANGE', 'ORANGE'], ['ORANGE', 'ORANGE', 'ORANGE']],
-    [['GREEN', 'GREEN', 'GREEN'], ['GREEN', 'GREEN', 'GREEN'], ['GREEN', 'GREEN', 'GREEN']],
-    [['RED', 'RED', 'RED'], ['RED', 'RED', 'RED'], ['RED', 'RED', 'RED']],
-    [['BLUE', 'BLUE', 'BLUE'], ['BLUE', 'BLUE', 'BLUE'], ['BLUE', 'BLUE', 'BLUE']],
-    [['YELLOW', 'YELLOW', 'YELLOW'], ['YELLOW', 'YELLOW', 'YELLOW'], ['YELLOW', 'YELLOW', 'YELLOW']]
-]
+class RubiksCase:
+    def __init__(self, color: RubiksColor = RubiksColor.UNDEFINED) -> None:
+        self.color = color
+    
+    def __str__(self) -> str:
+        if self.color == RubiksColor.UNDEFINED:
+            return "?"
+        return BOXES[self.color]
+    
+    def __repr__(self) -> str:
+        return str(self)
 
-def display_rc_thread():
-    global DISPLAY_RC
-    p = Panel("", border_style="green", title="Rubiks Cube", title_align="left", expand=False)
-    with Live(p, refresh_per_second=20):
-        while 1:
-            p.renderable = "{} {} {}\n{} {} {}\n{} {} {}".format(
-                BOXES[DISPLAY_RC[0][0][0]], BOXES[DISPLAY_RC[0][0][1]], BOXES[DISPLAY_RC[0][0][2]],
-                BOXES[DISPLAY_RC[0][1][0]], BOXES[DISPLAY_RC[0][1][1]], BOXES[DISPLAY_RC[0][1][2]],
-                BOXES[DISPLAY_RC[0][2][0]], BOXES[DISPLAY_RC[0][2][1]], BOXES[DISPLAY_RC[0][2][2]],
-            )
-            if (__import__("random").randint(0, 50) == 0):
-                DISPLAY_RC[0][__import__("random").randint(0, 2)][__import__("random").randint(0, 2)] = __import__("random").choice(list(COLORS.keys()))
+class RubiksFace:
+    def __init__(self, *args) -> None:
+        self.face = [
+            [RubiksColor.UNDEFINED, RubiksColor.UNDEFINED, RubiksColor.UNDEFINED],
+            [RubiksColor.UNDEFINED, RubiksColor.UNDEFINED, RubiksColor.UNDEFINED],
+            [RubiksColor.UNDEFINED, RubiksColor.UNDEFINED, RubiksColor.UNDEFINED]
+        ]
+        if not len(args):
+            return
+        if len(args) == 1 and type(args[0]) == list:
+            if type(args[0][0]) == list:
+                for j in range(len(args[0])):
+                    for i in range(len(args[0][j])):
+                        self.face[j][i] = self.parse_arg(args[0][j][i])
+            else:
+                index = (0, 0)
+                for i in range(len(args[0])):
+                    self.face[index[0], index[1]] = self.parse_arg(args[0][i])
+                    index[1] += 1
+                    if index[1] >= len(self.face[index[0]]):
+                        index[0] += 1
+                        index[1] = 0
+            return
+        if len(args) == 3 and type(args[0]) == list:
+            for j in range(len(args)):
+                for i in range(len(args[j])):
+                    self.face[j][i] = self.parse_arg(args[j][i])
+            return
+        if type(args[0]) in (int, RubiksColor, str):
+            index = (0, 0)
+            for i in range(len(args)):
+                self.face[index[0], index[1]] = self.parse_arg(args[i])
+                index[1] += 1
+                if index[1] >= len(self.face[index[0]]):
+                    index[0] += 1
+                    index[1] = 0
+            return
+        raise ValueError(f"Could not use the provided argument as a RubiksFace: {type(args[0])}")
+
+def rotate(self, clockwise = True):
+    poses = [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
+    if not clockwise:
+        poses.reverse()
+
+    for i in range(3):
+        tmp = self.face[poses[-1][0]][poses[-1][1]]
+        for i in range(len(poses)):
+            tmp, self.face[poses[i][0]][poses[i][1]] = self.face[poses[i][0]][poses[i][1]], tmp
+
+
+    def parse_arg(self, arg):
+        if type(arg) == int:
+            if arg in range(7):
+                return list(RubiksColor)[arg]
+            raise ValueError(f"Argument {arg} is undefined for type RubiksColor")
+        if type(arg) == RubiksColor:
+            return arg
+        if type(arg) == str:
+            return RubiksColor[arg]
+        raise ValueError(f"Type {type(arg)} could not be used to cast a RubiksColor (supported types are 'int', 'RubiksColor' and 'str')")
+
+    def __rich_repr__(self):
+        return Panel(
+            f"""{self.face[0][0]} {self.face[0][1]} {self.face[0][2]}
+{self.face[1][0]} {self.face[1][1]} {self.face[1][2]}
+{self.face[2][0]} {self.face[2][1]} {self.face[2][2]}""", border_style="green"
+        )
+
+    def __str__(self) -> str:
+        return str(Panel(
+            f"""{self.face[0][0]} {self.face[0][1]} {self.face[0][2]}
+{self.face[1][0]} {self.face[1][1]} {self.face[1][2]}
+{self.face[2][0]} {self.face[2][1]} {self.face[2][2]}""", border_style="green"
+        ))
+    
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __getitem__(self, item: int):
+        return self.face[item]
 
 class RubiksCube:
     def __init__(self):
-        self.cube = [
-            [['W', 'W', 'W'], ['W', 'W', 'W'], ['W', 'W', 'W']],
-            [['O', 'O', 'O'], ['O', 'O', 'O'], ['O', 'O', 'O']],
-            [['G', 'G', 'G'], ['G', 'G', 'G'], ['G', 'G', 'G']],
-            [['R', 'R', 'R'], ['R', 'R', 'R'], ['R', 'R', 'R']],
-            [['B', 'B', 'B'], ['B', 'B', 'B'], ['B', 'B', 'B']],
-            [['Y', 'Y', 'Y'], ['Y', 'Y', 'Y'], ['Y', 'Y', 'Y']]
-        ]
+        self.T = RubiksFace([RubiksColor.WHITE, RubiksColor.WHITE, RubiksColor.WHITE], [RubiksColor.WHITE, RubiksColor.WHITE, RubiksColor.WHITE], [RubiksColor.WHITE, RubiksColor.WHITE, RubiksColor.WHITE])
+        self.L = RubiksFace([RubiksColor.ORANGE, RubiksColor.ORANGE, RubiksColor.ORANGE], [RubiksColor.ORANGE, RubiksColor.ORANGE, RubiksColor.ORANGE], [RubiksColor.ORANGE, RubiksColor.ORANGE, RubiksColor.ORANGE])
+        self.F = RubiksFace([RubiksColor.GREEN, RubiksColor.GREEN, RubiksColor.GREEN], [RubiksColor.GREEN, RubiksColor.GREEN, RubiksColor.GREEN], [RubiksColor.GREEN, RubiksColor.GREEN, RubiksColor.GREEN])
+        self.R = RubiksFace([RubiksColor.RED, RubiksColor.RED, RubiksColor.RED], [RubiksColor.RED, RubiksColor.RED, RubiksColor.RED], [RubiksColor.RED, RubiksColor.RED, RubiksColor.RED])
+        self.B = RubiksFace([RubiksColor.BLUE, RubiksColor.BLUE, RubiksColor.BLUE], [RubiksColor.BLUE, RubiksColor.BLUE, RubiksColor.BLUE], [RubiksColor.BLUE, RubiksColor.BLUE, RubiksColor.BLUE])
+        self.D = RubiksFace([RubiksColor.YELLOW, RubiksColor.YELLOW, RubiksColor.YELLOW], [RubiksColor.YELLOW, RubiksColor.YELLOW, RubiksColor.YELLOW], [RubiksColor.YELLOW, RubiksColor.YELLOW, RubiksColor.YELLOW])
+    
+    def __getitem__(self, item: str):
+        if item.lower() in ("t", "top", "up"):
+            return self.T
+        if item.lower() in ("l", "left", "ouest", "west"):
+            return self.L
+        if item.lower() in ("f", "front"):
+            return self.F
+        if item.lower() in ("r", "right", "est"):
+            return self.R
+        if item.lower() in ("b", "back"):
+            return self.B
+        if item.lower() in ("d", "down"):
+            return self.D
+        raise ValueError(f"Could not interprete {item} as a face position !")
 
     def reset(self):
         self.__init__()
@@ -226,19 +316,3 @@ class RubiksCube:
             self.rotate(face, 'clockwise')
         elif move[1] == "'":
             self.rotate(face, 'counter-clockwise')
-
-def main():
-    cube = RubiksCube()
-    cube.show()
-    # moves = cube.shuffle(4)
-
-    moves = ["T2", "B2", "L"]
-    for move in moves:
-        cube.do_move(move)
-        print(move)
-        cube.show()
-    print("Final state:")
-    cube.show()
-
-if __name__ == "__main__":
-    main()
