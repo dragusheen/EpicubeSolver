@@ -6,31 +6,50 @@ import cv2
 
 from PIL import Image
 
-def make_sample_image(colors):
-    Color = Colors()
-    s = 50
-    default = Image.new("RGB", (s * 3, s * 3))
-    nearest = Image.new("RGB", (s * 3, s * 3))
-    x = 0
-    y = 0
-    for color in colors:
-        r1, g1, b1 = color
-        r2, g2, b2 = Color.getNearColor(color)
-        for j in range(s):
-            for i in range(s):
-                default.putpixel((i + 50 * x, j + 50 * y), (r1, g1, b1))
-                nearest.putpixel((i + 50 * x, j + 50 * y), (r2, g2, b2))
-        x += 1
-        if x == 3:
-            x = 0
-            y += 1
-    default.show()
-    nearest.show()
+class Colors:
+    colors = {
+        "blue": (0, 0, 255),
+        "green": (0, 255, 0),
+        "orange": (255, 165, 0),
+        "red": (255, 0, 0),
+        "white": (255, 255, 255),
+        "yellow": (255, 255, 0)
+    }
+
+    colorsName = {
+        (0, 0, 255): 'B',
+        (0, 255, 0): 'G',
+        (255, 165, 0): 'O',
+        (255, 0, 0): 'R',
+        (255, 255, 255): 'W',
+        (255, 255, 0): 'Y'
+    }
+
+    def __init__(self):
+        pass
+
+    def distance(self, c1, c2):
+        r1, g1, b1 = c1
+        r2, g2, b2 = c2
+        return ((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) ** 0.5
+
+    def getNearColor(self, c):
+        r, g, b = c
+        distances = []
+        for color in self.colors.values():
+            distances.append(self.distance(c, color))
+        index = distances.index(min(distances))
+        return list(self.colors.values())[index]
+
+    def getColorName(self, c):
+        return self.colorsName[c]
+
 
 class Camera:
-    gallery = []
+    isRunning = True
+    wantClose = False;
     distance = 24
-    isOpen = True
+    gallery = []
 
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
@@ -54,7 +73,6 @@ class Camera:
                 y = height + (self.distance * 2 * i)
                 b, g, r = frame[y, x]
                 color.append((r, g, b))
-        make_sample_image(color)
         self.gallery.append(color)
 
     def draw_circle(self, frame, pos):
@@ -71,8 +89,8 @@ class Camera:
                 y = height + (self.distance * 2 * j)
                 self.draw_circle(frame, (x, y))
 
-    def live(self):
-        while (self.isOpen):
+    def start(self):
+        while self.isRunning:
             ret, frame = self.cap.read()
             self.draw(frame)
             if not ret:
@@ -81,58 +99,55 @@ class Camera:
             cv2.imshow('Camera', frame)
             key = cv2.waitKey(30)
             self.event_handler(key)
-
+    
     def event_handler(self, key):
         if key == 27 or key == ord('q'):
-            self.isOpen = False
-            print("Closing...")
+            if self.wantClose:
+                self.isRunning = False
+                print("Closing...")
+            else:
+                if len(self.gallery) >= 6:
+                    self.isRunning = False
+                    print("Closing...")
+                else:
+                    print(f"Are you sure u want to close ? You need {6 - len(self.gallery)} pictures to complete the cube...")
+                    self.wantClose = True
         if key == ord(' '):
-            print("Capturing...")
-            self.capture()
+            if (len(self.gallery) >= 6):
+                print("You have all your faces in the gallery")
+            else:
+                print("Capturing...")
+                self.capture()
+            self.wantClose = False
         if key == 82:
             print("Zooming in...")
             self.distance += 1
+            self.wantClose = False
         if key == 84:
             print("Zooming out...")
             self.distance -= 1
+            self.wantClose = False
         if key == ord('r'):
             print("Refreshing...")
             self.distance = 24
+            self.wantClose = False
 
-class Colors:
-    colors = {
-        "blue": (0, 0, 255),
-        "green": (0, 255, 0),
-        "orange": (255, 165, 0),
-        "red": (255, 0, 0),
-        "white": (255, 255, 255),
-        "yellow": (255, 255, 0)
-    }
+    def getCube(self):
+        if (len(self.gallery) < 6):
+            raise ValueError("You don't have the 6 faces in the gallery")
+        color = Colors()
+        cube = []
+        for img in self.gallery:
+            cube.append([
+                [color.getColorName(color.getNearColor(img[i])) for i in range(0, 3)],
+                [color.getColorName(color.getNearColor(img[i])) for i in range(3, 6)],
+                [color.getColorName(color.getNearColor(img[i])) for i in range(6, 9)]
+            ])
+        return cube
 
-    def __init__(self):
-        pass
+cam = Camera()
+cam.start()
 
-    def distance(self, c1, c2):
-        r1, g1, b1 = c1
-        r2, g2, b2 = c2
-        return ((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) ** 0.5
-
-    def getNearColor(self, c):
-        r, g, b = c
-        distances = []
-        for color in self.colors.values():
-            distances.append(self.distance(c, color))
-        index = distances.index(min(distances))
-        return list(self.colors.values())[index]
-
-
-
-Cam = Camera()
-Cam.live()
-# camColors = Cam.getColors()
-# Color = Colors()
-# for colors in camColors:
-#     print("Colors:")
-#     for color in colors:
-#         print(f"{color}: {Color.getNearColor(color)}")
-#     print()
+cube = cam.getCube()
+for face in cube:
+    print(face)

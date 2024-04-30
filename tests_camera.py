@@ -13,55 +13,32 @@ from PIL import Image
 BOX = "■"
 
 COLORS = {
-    "BLUE": "[purple3]",
-    "GREEN": "[green3]",
-    "ORANGE": "[dark_orange3]",
-    "RED": "[red3]",
-    "WHITE": "[white]",
-    "YELLOW": "[yellow2]",
-    "RESET": "[/]"
+    "BLUE":     "[purple3]",
+    "GREEN":    "[green3]",
+    "ORANGE":   "[dark_orange3]",
+    "RED":      "[red3]",
+    "WHITE":    "[white]",
+    "YELLOW":   "[yellow2]",
+    "RESET":    "[/]"
 }
 
 BOXES = {
-    "BLUE": COLORS["BLUE"] + BOX + COLORS["RESET"],
-    "GREEN": COLORS["GREEN"] + BOX + COLORS["RESET"],
-    "ORANGE": COLORS["ORANGE"] + BOX + COLORS["RESET"],
-    "RED": COLORS["RED"] + BOX + COLORS["RESET"],
-    "WHITE": COLORS["WHITE"] + BOX + COLORS["RESET"],
-    "YELLOW": COLORS["YELLOW"] + BOX + COLORS["RESET"]
+    "BLUE": COLORS["BLUE"]      + BOX + COLORS["RESET"],
+    "GREEN": COLORS["GREEN"]    + BOX + COLORS["RESET"],
+    "ORANGE": COLORS["ORANGE"]  + BOX + COLORS["RESET"],
+    "RED": COLORS["RED"]        + BOX + COLORS["RESET"],
+    "WHITE": COLORS["WHITE"]    + BOX + COLORS["RESET"],
+    "YELLOW": COLORS["YELLOW"]  + BOX + COLORS["RESET"]
 }
 
 DISPLAY_RC = [
-    [['WHITE', 'WHITE', 'WHITE'], ['WHITE', 'WHITE', 'WHITE'], ['WHITE', 'WHITE', 'WHITE']],
-    [['ORANGE', 'ORANGE', 'ORANGE'], ['ORANGE', 'ORANGE', 'ORANGE'], ['ORANGE', 'ORANGE', 'ORANGE']],
-    [['GREEN', 'GREEN', 'GREEN'], ['GREEN', 'GREEN', 'GREEN'], ['GREEN', 'GREEN', 'GREEN']],
-    [['RED', 'RED', 'RED'], ['RED', 'RED', 'RED'], ['RED', 'RED', 'RED']],
-    [['BLUE', 'BLUE', 'BLUE'], ['BLUE', 'BLUE', 'BLUE'], ['BLUE', 'BLUE', 'BLUE']],
-    [['YELLOW', 'YELLOW', 'YELLOW'], ['YELLOW', 'YELLOW', 'YELLOW'], ['YELLOW', 'YELLOW', 'YELLOW']]
+    [['WHITE', 'WHITE', 'WHITE'],       ['WHITE', 'WHITE', 'WHITE'],        ['WHITE', 'WHITE', 'WHITE']],
+    [['ORANGE', 'ORANGE', 'ORANGE'],    ['ORANGE', 'ORANGE', 'ORANGE'],     ['ORANGE', 'ORANGE', 'ORANGE']],
+    [['GREEN', 'GREEN', 'GREEN'],       ['GREEN', 'GREEN', 'GREEN'],        ['GREEN', 'GREEN', 'GREEN']],
+    [['RED', 'RED', 'RED'],             ['RED', 'RED', 'RED'],              ['RED', 'RED', 'RED']],
+    [['BLUE', 'BLUE', 'BLUE'],          ['BLUE', 'BLUE', 'BLUE'],           ['BLUE', 'BLUE', 'BLUE']],
+    [['YELLOW', 'YELLOW', 'YELLOW'],    ['YELLOW', 'YELLOW', 'YELLOW'],     ['YELLOW', 'YELLOW', 'YELLOW']]
 ]
-
-
-
-def make_sample_image(colors):
-    Color = Colors()
-    s = 50
-    default = Image.new("RGB", (s * 3, s * 3))
-    nearest = Image.new("RGB", (s * 3, s * 3))
-    x = 0
-    y = 0
-    for color in colors:
-        r1, g1, b1 = color
-        r2, g2, b2 = Color.getNearColor(color)
-        for j in range(s):
-            for i in range(s):
-                default.putpixel((i + 50 * x, j + 50 * y), (r1, g1, b1))
-                nearest.putpixel((i + 50 * x, j + 50 * y), (r2, g2, b2))
-        x += 1
-        if x == 3:
-            x = 0
-            y += 1
-    default.show()
-    nearest.show()
 
 class Camera:
     gallery = []
@@ -90,7 +67,6 @@ class Camera:
                 y = height + (self.distance * 2 * i)
                 b, g, r = frame[y, x]
                 color.append((r, g, b))
-        make_sample_image(color)
         self.gallery.append(color)
 
     def draw_circle(self, frame, pos):
@@ -176,7 +152,8 @@ with Live(p, refresh_per_second=20):
             BOXES[DISPLAY_RC[0][1][0]], BOXES[DISPLAY_RC[0][1][1]], BOXES[DISPLAY_RC[0][1][2]],
             BOXES[DISPLAY_RC[0][2][0]], BOXES[DISPLAY_RC[0][2][1]], BOXES[DISPLAY_RC[0][2][2]],
         )
-        self.cap
+        Cam.capture()
+        print(Cam.gallery())
 # camColors = Cam.getColors()
 # Color = Colors()
 # for colors in camColors:
