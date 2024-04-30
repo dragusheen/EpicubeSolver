@@ -2,12 +2,25 @@
 
 from kociemba import solve as god_solve
 
+from rich import print
+
+from rich.panel import Panel
+
 import random
 import time
 
+import sys
+
 seed = int(time.time())
 
-print(f"===== Used SEED : {seed} =====")
+if len(sys.argv) == 2:
+    try:
+        seed = int(sys.argv[1])
+        sys.argv.remove(str(seed))
+    except:
+        pass
+
+print(f"===== Used SEED : {seed} =====\n")
 
 random.seed(seed)
 
@@ -43,9 +56,9 @@ class RubiksCube:
 #   L F R B
 #     D
     def rotate(self, movement): #face, direction):
-        if not len(movement) in (1, 2) or movement[0] not in "TULFRBD" :
+        if not len(movement) in (1, 2) or movement[0] not in "ULFRBD" :
             raise ValueError("Invalid movement")
-        face = movement[0].replace("U", "T")
+        face = movement[0]
         rep = 1
         if len(movement) == 2:
             if movement[1] not in "2'":
@@ -53,8 +66,8 @@ class RubiksCube:
             rep = 2 if movement[1] == '2' else 3
 
         for _ in range(rep):
-            if face == 'T':
-                self.rotate_face(self.get_face('T'))
+            if face == 'U':
+                self.rotate_face(self.get_face('U'))
                 line = self.cube[self.get_face('F')][0]
                 self.cube[self.get_face('F')][0] = self.cube[self.get_face('R')][0]
                 self.cube[self.get_face('R')][0] = self.cube[self.get_face('B')][0]
@@ -69,13 +82,13 @@ class RubiksCube:
                 self.cube[self.get_face('R')][2] = line
             if face == 'F':
                 self.rotate_face(self.get_face('F'))
-                line = [self.cube[self.get_face('T')][2][0], self.cube[self.get_face('T')][2][1], self.cube[self.get_face('T')][2][2]]
-                self.cube[self.get_face('T')][2][0] = self.cube[self.get_face('L')][2][2]
-                self.cube[self.get_face('T')][2][1] = self.cube[self.get_face('L')][1][2]
-                self.cube[self.get_face('T')][2][2] = self.cube[self.get_face('L')][0][2]
-                self.cube[self.get_face('L')][2][2] = self.cube[self.get_face('D')][0][0]
+                line = [self.cube[self.get_face('U')][2][0], self.cube[self.get_face('U')][2][1], self.cube[self.get_face('U')][2][2]]
+                self.cube[self.get_face('U')][2][0] = self.cube[self.get_face('L')][2][2]
+                self.cube[self.get_face('U')][2][1] = self.cube[self.get_face('L')][1][2]
+                self.cube[self.get_face('U')][2][2] = self.cube[self.get_face('L')][0][2]
+                self.cube[self.get_face('L')][0][2] = self.cube[self.get_face('D')][0][0]
                 self.cube[self.get_face('L')][1][2] = self.cube[self.get_face('D')][0][1]
-                self.cube[self.get_face('L')][0][2] = self.cube[self.get_face('D')][0][2]
+                self.cube[self.get_face('L')][2][2] = self.cube[self.get_face('D')][0][2]
                 self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('R')][2][0]
                 self.cube[self.get_face('D')][0][1] = self.cube[self.get_face('R')][1][0]
                 self.cube[self.get_face('D')][0][2] = self.cube[self.get_face('R')][0][0]
@@ -84,28 +97,28 @@ class RubiksCube:
                 self.cube[self.get_face('R')][2][0] = line[2]
             if face == 'B':
                 self.rotate_face(self.get_face('B'))
-                line = [self.cube[self.get_face('T')][0][2], self.cube[self.get_face('T')][0][1], self.cube[self.get_face('T')][0][0]]
-                self.cube[self.get_face('T')][0][0] = self.cube[self.get_face('R')][0][2]
-                self.cube[self.get_face('T')][0][1] = self.cube[self.get_face('R')][1][2]
-                self.cube[self.get_face('T')][0][2] = self.cube[self.get_face('R')][2][2]
+                line = [self.cube[self.get_face('U')][0][2], self.cube[self.get_face('U')][0][1], self.cube[self.get_face('U')][0][0]]
+                self.cube[self.get_face('U')][0][0] = self.cube[self.get_face('R')][0][2]
+                self.cube[self.get_face('U')][0][1] = self.cube[self.get_face('R')][1][2]
+                self.cube[self.get_face('U')][0][2] = self.cube[self.get_face('R')][2][2]
                 self.cube[self.get_face('R')][0][2] = self.cube[self.get_face('D')][2][2]
                 self.cube[self.get_face('R')][1][2] = self.cube[self.get_face('D')][2][1]
                 self.cube[self.get_face('R')][2][2] = self.cube[self.get_face('D')][2][0]
-                self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('L')][0][0]
+                self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('L')][2][0]
                 self.cube[self.get_face('D')][2][1] = self.cube[self.get_face('L')][1][0]
-                self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('L')][2][0]
+                self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('L')][0][0]
                 self.cube[self.get_face('L')][0][0] = line[0]
                 self.cube[self.get_face('L')][1][0] = line[1]
                 self.cube[self.get_face('L')][2][0] = line[2]
             if face == 'L':
                 self.rotate_face(self.get_face('L'))
-                line = [self.cube[self.get_face('T')][0][0], self.cube[self.get_face('T')][1][0], self.cube[self.get_face('T')][2][0]]
-                self.cube[self.get_face('T')][0][0] = self.cube[self.get_face('B')][2][2]
-                self.cube[self.get_face('T')][1][0] = self.cube[self.get_face('B')][1][2]
-                self.cube[self.get_face('T')][2][0] = self.cube[self.get_face('B')][0][2]
-                self.cube[self.get_face('B')][0][2] = self.cube[self.get_face('D')][2][0]
-                self.cube[self.get_face('B')][1][2] = self.cube[self.get_face('D')][1][0]
+                line = [self.cube[self.get_face('U')][0][0], self.cube[self.get_face('U')][1][0], self.cube[self.get_face('U')][2][0]]
+                self.cube[self.get_face('U')][0][0] = self.cube[self.get_face('B')][2][2]
+                self.cube[self.get_face('U')][1][0] = self.cube[self.get_face('B')][1][2]
+                self.cube[self.get_face('U')][2][0] = self.cube[self.get_face('B')][0][2]
                 self.cube[self.get_face('B')][2][2] = self.cube[self.get_face('D')][0][0]
+                self.cube[self.get_face('B')][1][2] = self.cube[self.get_face('D')][1][0]
+                self.cube[self.get_face('B')][0][2] = self.cube[self.get_face('D')][2][0]
                 self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('F')][0][0]
                 self.cube[self.get_face('D')][1][0] = self.cube[self.get_face('F')][1][0]
                 self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('F')][2][0]
@@ -114,10 +127,10 @@ class RubiksCube:
                 self.cube[self.get_face('F')][2][0] = line[2]
             if face == 'R':
                 self.rotate_face(self.get_face('R'))
-                line = [self.cube[self.get_face('T')][0][2], self.cube[self.get_face('T')][1][2], self.cube[self.get_face('T')][2][2]]
-                self.cube[self.get_face('T')][0][2] = self.cube[self.get_face('F')][0][2]
-                self.cube[self.get_face('T')][1][2] = self.cube[self.get_face('F')][1][2]
-                self.cube[self.get_face('T')][2][2] = self.cube[self.get_face('F')][2][2]
+                line = [self.cube[self.get_face('U')][0][2], self.cube[self.get_face('U')][1][2], self.cube[self.get_face('U')][2][2]]
+                self.cube[self.get_face('U')][0][2] = self.cube[self.get_face('F')][0][2]
+                self.cube[self.get_face('U')][1][2] = self.cube[self.get_face('F')][1][2]
+                self.cube[self.get_face('U')][2][2] = self.cube[self.get_face('F')][2][2]
                 self.cube[self.get_face('F')][0][2] = self.cube[self.get_face('D')][0][2]
                 self.cube[self.get_face('F')][1][2] = self.cube[self.get_face('D')][1][2]
                 self.cube[self.get_face('F')][2][2] = self.cube[self.get_face('D')][2][2]
@@ -129,40 +142,25 @@ class RubiksCube:
                 self.cube[self.get_face('B')][2][0] = line[0]
 
     def show(self):
-        def print_face(face):
-            for row in range(3):
-                print("            ", end=' ');
-                for col in range(3):
-                    color = self.get_color(face[row][col])
-                    print(f"\033[{color}m■\033[0m", end=' ')
-                print()
-            print()
-        print("-" * 12, end='')
-        print(" Rubik's Cube ", end='')
-        print("-" * 12)
-        print()
-        print_face(self.cube[0])
-        for row in range(3):
-            print("     ", end=' ');
-            for index in range(1, 5):
-                face = self.cube[index]
-                for col in range(3):
-                    color = self.get_color(face[row][col])
-                    print(f"\033[{color}m■\033[0m", end=' ')
-                print(end=' ')
-            print()
-        print()
-        print_face(self.cube[5])
-        print("-" * 12, end='')
-        print("--------------", end='')
-        print("-" * 12)
+        cube = f"""       {self.get_color(self.cube[self.get_face('U')][0][0])}■[/] {self.get_color(self.cube[self.get_face('U')][0][1])}■[/] {self.get_color(self.cube[self.get_face('U')][0][2])}■[/]
+       {self.get_color(self.cube[self.get_face('U')][1][0])}■[/] {self.get_color(self.cube[self.get_face('U')][1][1])}■[/] {self.get_color(self.cube[self.get_face('U')][1][2])}■[/]
+       {self.get_color(self.cube[self.get_face('U')][2][0])}■[/] {self.get_color(self.cube[self.get_face('U')][2][1])}■[/] {self.get_color(self.cube[self.get_face('U')][2][2])}■[/]
+{self.get_color(self.cube[self.get_face('L')][0][0])}■[/] {self.get_color(self.cube[self.get_face('L')][0][1])}■[/] {self.get_color(self.cube[self.get_face('L')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][0][0])}■[/] {self.get_color(self.cube[self.get_face('F')][0][1])}■[/] {self.get_color(self.cube[self.get_face('F')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][0][0])}■[/] {self.get_color(self.cube[self.get_face('R')][0][1])}■[/] {self.get_color(self.cube[self.get_face('R')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][0][0])}■[/] {self.get_color(self.cube[self.get_face('B')][0][1])}■[/] {self.get_color(self.cube[self.get_face('B')][0][2])}■[/]
+{self.get_color(self.cube[self.get_face('L')][1][0])}■[/] {self.get_color(self.cube[self.get_face('L')][1][1])}■[/] {self.get_color(self.cube[self.get_face('L')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][1][0])}■[/] {self.get_color(self.cube[self.get_face('F')][1][1])}■[/] {self.get_color(self.cube[self.get_face('F')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][1][0])}■[/] {self.get_color(self.cube[self.get_face('R')][1][1])}■[/] {self.get_color(self.cube[self.get_face('R')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][1][0])}■[/] {self.get_color(self.cube[self.get_face('B')][1][1])}■[/] {self.get_color(self.cube[self.get_face('B')][1][2])}■[/]
+{self.get_color(self.cube[self.get_face('L')][2][0])}■[/] {self.get_color(self.cube[self.get_face('L')][2][1])}■[/] {self.get_color(self.cube[self.get_face('L')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][2][0])}■[/] {self.get_color(self.cube[self.get_face('F')][2][1])}■[/] {self.get_color(self.cube[self.get_face('F')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][2][0])}■[/] {self.get_color(self.cube[self.get_face('R')][2][1])}■[/] {self.get_color(self.cube[self.get_face('R')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][2][0])}■[/] {self.get_color(self.cube[self.get_face('B')][2][1])}■[/] {self.get_color(self.cube[self.get_face('B')][2][2])}■[/]
+       {self.get_color(self.cube[self.get_face('D')][0][0])}■[/] {self.get_color(self.cube[self.get_face('D')][0][1])}■[/] {self.get_color(self.cube[self.get_face('D')][0][2])}■[/]
+       {self.get_color(self.cube[self.get_face('D')][1][0])}■[/] {self.get_color(self.cube[self.get_face('D')][1][1])}■[/] {self.get_color(self.cube[self.get_face('D')][1][2])}■[/]
+       {self.get_color(self.cube[self.get_face('D')][2][0])}■[/] {self.get_color(self.cube[self.get_face('D')][2][1])}■[/] {self.get_color(self.cube[self.get_face('D')][2][2])}■[/]"""
+        print("------------ Rubik's Cube ------------")
+        print(Panel(cube, border_style="green", expand=False))
+        print("--------------------------------------")
 
     def get_color(self, sticker):
-        colors = {'W': '97', 'R': '91', 'G': '92', 'O': '95', 'B': '94', 'Y': '93'}
+        colors = {'W': '[bright_white]', 'R': '[red3]', 'G': '[chartreuse3]', 'O': '[dark_orange3]', 'B': '[dark_blue]', 'Y': '[yellow2]'}
         return colors[sticker]
 
     def get_face(self, face):
-        faces = {0: 'T', 1: 'L', 2: 'F', 3: 'R', 4: 'B', 5: 'D'}
+        faces = {0: 'U', 1: 'L', 2: 'F', 3: 'R', 4: 'B', 5: 'D'}
         if isinstance(face, int):
             return faces.get(face)
         else:
@@ -173,8 +171,8 @@ class RubiksCube:
 
     def shuffle(self, moves=5):
         _moves = []
-        all_possible_moves = ['T', 'L', 'F', 'R', 'B', 'D']
-        possible_moves = ['T', 'L', 'F', 'R', 'B', 'D']
+        all_possible_moves = ['U', 'L', 'F', 'R', 'B', 'D']
+        possible_moves = ['U', 'L', 'F', 'R', 'B', 'D']
         for _ in range(moves):
             rep = random.randint(1, 3)
             face = random.choice(possible_moves)
@@ -186,12 +184,8 @@ class RubiksCube:
             _moves.append(move)
             possible_moves = all_possible_moves.copy()
             possible_moves.remove(face)
-        print(' '.join(_moves))
-        self.show()
         for e in _moves:
-            print(e)
             self.rotate(e)
-            self.show()
         return _moves
 
     def do_move(self, move):
@@ -204,50 +198,50 @@ class RubiksCube:
         elif move[1] == "'":
             self.rotate(face, 'counter-clockwise')
 
-    def try_nb_decode(self, faces, corespond, values):
-        for i in range(len(corespond)):
-            faces = faces.replace(corespond[i], values[i])
-        try:
-            return god_solve(faces)
-        except:
-            return None
-
-    def bf_solve(self, faces):
-        corespond   = "RBWOGY"
-        values      = "URFDLB"
-
-        while not self.try_nb_decode(faces, corespond, values):
-            corespond = [e for e in corespond]
-            random.shuffle(corespond)
-            corespond = ''.join(corespond)
-            print(corespond, end='\r')
-        return self.try_nb_decode(faces, corespond, values)
-
     def solve(self):
-        sequence    = "TRFDLB"
-        corespond   = "RBWOGY"
+        sequence    = "URFDLB"
         values      = "URFDLB"
+        corespond   = "WRGYOB"
 
         faces = [self.cube[self.get_face(e)] for e in sequence]
-        self.show()
-        print(self.cube)
 
         faces = ''.join([''.join([''.join(y) for y in x]) for x in faces])
 
-        print(' '.join([faces[i:i+3] for i in range(0, len(faces), 3)]))
+        for i in range(len(corespond)):
+            faces = faces.replace(corespond[i], values[i])
 
-        result = self.bf_solve(faces)
+        result = None
+
+        try:
+            result = god_solve(faces)
+        except:
+            pass
+        if not result:
+            return None
 
         for e in result.split(' '):
             self.rotate(e)
+        return result.split(' ')
 
 def main():
     cube = RubiksCube()
-    cube.shuffle()
+
     cube.show()
-    cube.solve()
+
+    if len(sys.argv) - 1:
+        if len(sys.argv) - 2:
+            sequence = sys.argv[1:]
+        else:
+            sequence = sys.argv[1].split(' ')
+
+        for e in sequence:
+            cube.rotate(e)
+        print(' '.join(sequence))
+    else:
+        print(' '.join(cube.shuffle(random.randint(10, 20))))
     cube.show()
-    # cube.solve()
+    print(' '.join(cube.solve()))
+    cube.show()
 
 if __name__ == "__main__":
     main()
