@@ -23,33 +23,40 @@ class EpicubeSolver:
     def clear_screen(self):
         os.system('clear')
 
-    def _displayBuildingCube(self, cube):
+    def _addCubeWithColor(self, colors, cube, k, i, j, pos):
+        z, y, x = pos
+        if k == z and i == y and j == x:
+            return f"[purple on #F47983]{colors[cube[k][i][j]]}■[/] [/]"
+        else:
+            return f"{colors[cube[k][i][j]]}■[/] "
+
+    def _displayBuildingCube(self, cube, pos):
         colors = {'W': '[bright_white]', 'R': '[red3]', 'G': '[chartreuse3]', 'O': '[dark_orange3]', 'B': '[dark_blue]', 'Y': '[yellow2]'}
         display = ""
         for i in range(3):
             display += "        "
             for j in range(3):
-                display += f"{colors[cube[0][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 0, i, j, pos)
             display += "\n"
         display += "\n"
         for i in range(3):
             for j in range(3):
-                display += f"{colors[cube[1][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 1, i, j, pos)
             display += "  "
             for j in range(3):
-                display += f"{colors[cube[2][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 2, i, j, pos)
             display += "  "
             for j in range(3):
-                display += f"{colors[cube[3][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 3, i, j, pos)
             display += "  "
             for j in range(3):
-                display += f"{colors[cube[4][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 4, i, j, pos)
             display += "\n"
         display += "\n"
         for i in range(3):
             display += "        "
             for j in range(3):
-                display += f"{colors[cube[5][i][j]]}■[/] "
+                display += self._addCubeWithColor(colors, cube, 5, i, j, pos)
             display += "\n"
         self.console.print(Panel(display, border_style="green", expand=False))
 
@@ -85,7 +92,7 @@ class EpicubeSolver:
             index = 0;
             while (index < 6):
                 self.clear_screen()
-                self._displayBuildingCube(cube)
+                self._displayBuildingCube(cube, (index, i, j))
                 color = self.console.input(f"[bold magenta]Please enter the colors for the {order[index]} face at position ({i}, {j})[/bold magenta]\n>> ")
                 if color.upper() not in ['W', 'R', 'G', 'O', 'B', 'Y', 'Q'] and color.upper() not in ['WHITE', 'RED', 'GREEN', 'ORANGE', 'BLUE', 'YELLOW', 'QUIT'] and color != '':
                     self.console.print(f"[bold red]Invalid color : {color}. Please try again.[/bold red]")
@@ -100,7 +107,7 @@ class EpicubeSolver:
                     color = cube[index][i][j]
                 cube[index][i][j] = color.upper()[0]
                 self.clear_screen()
-                self._displayBuildingCube(cube)
+                self._displayBuildingCube(cube, (index, i, j))
                 confirm_result = self.prompt.ask(f"Do you want to set the color {color.upper()} for the {order[index]} face at position ({i}, {j}) ?", default=True)
                 if confirm_result:
                     cube[index][i][j] = color.upper()
