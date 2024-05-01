@@ -18,9 +18,9 @@ It combines several libraries to create a virtual Rubik's Cube, allowing you to 
 2. [How It Works](#🚀-how-it-works)
 3. [Getting Started](#🛠️-getting-started)
 4. [Usage](#🕹️-usage) <br>
-    4.1 [Building a Cube](#📝-building-a-cube)
-    4.2 [Manipulating the Cube](#🎮-manipulating-the-cube)
-    4.3 [Solving the Cube](#🏆-solving-the-cube)
+    4.1 [Building a Cube](#📝-building-a-cube) <br>
+    4.2 [Manipulating the Cube](#🎮-manipulating-the-cube) <br>
+    4.3 [Solving the Cube](#🏆-solving-the-cube) <br>
 5. [Rubik's Cube Move Notation](#📝-rubiks-cube-move-notation)
 6. [License](#📚-license)
 7. [Contributing](#🤝-contributing)
