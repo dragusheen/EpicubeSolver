@@ -1,10 +1,6 @@
-#!/usr/bin/python3
-
 from rich import print
 
 import cv2
-
-from PIL import Image
 
 class Colors:
     colors = {
@@ -88,6 +84,11 @@ class Camera:
                 x = width + (self.distance * 2 * i)
                 y = height + (self.distance * 2 * j)
                 self.draw_circle(frame, (x, y))
+        faces = ["White", "Orange", "Green", "Red", "Blue", "Yellow"]
+        tmp = "All faces captured"
+        if len(self.gallery) < 6:
+            tmp = f"Press space to capture {faces[len(self.gallery)]} face"
+        cv2.putText(frame, tmp, (0, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
     def start(self):
         while self.isRunning:
@@ -99,7 +100,8 @@ class Camera:
             cv2.imshow('Camera', frame)
             key = cv2.waitKey(30)
             self.event_handler(key)
-    
+        cv2.destroyAllWindows()
+
     def event_handler(self, key):
         if key == 27 or key == ord('q'):
             if self.wantClose:
@@ -118,6 +120,7 @@ class Camera:
             else:
                 print("Capturing...")
                 self.capture()
+                self.flashEffect = 10
             self.wantClose = False
         if key == 82:
             print("Zooming in...")
@@ -144,10 +147,3 @@ class Camera:
                 [color.getColorName(color.getNearColor(img[i])) for i in range(6, 9)]
             ])
         return cube
-
-cam = Camera()
-cam.start()
-
-cube = cam.getCube()
-for face in cube:
-    print(face)

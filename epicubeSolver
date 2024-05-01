@@ -1,247 +1,253 @@
 #!/usr/bin/python3
 
-from kociemba import solve as god_solve
+import os
+import time
+import termios
 
-from rich import print
-
+from rich.console import Console
+from rich.prompt import Confirm
 from rich.panel import Panel
 
-import random
-import time
+from rubiksCube import RubiksCube
+from camera import Camera
 
-import sys
 
-seed = int(time.time())
+class EpicubeSolver:
+    rubiksCube = None
+    isRunning = True
 
-if len(sys.argv) == 2:
-    try:
-        seed = int(sys.argv[1])
-        sys.argv.remove(str(seed))
-    except:
-        pass
-
-print(f"===== Used SEED : {seed} =====\n")
-
-random.seed(seed)
-
-BOX = "■"
-
-class RubiksCube:
     def __init__(self):
-        self.cube = [
-            [['W', 'W', 'W'], ['W', 'W', 'W'], ['W', 'W', 'W']],
-            [['O', 'O', 'O'], ['O', 'O', 'O'], ['O', 'O', 'O']],
-            [['G', 'G', 'G'], ['G', 'G', 'G'], ['G', 'G', 'G']],
-            [['R', 'R', 'R'], ['R', 'R', 'R'], ['R', 'R', 'R']],
-            [['B', 'B', 'B'], ['B', 'B', 'B'], ['B', 'B', 'B']],
-            [['Y', 'Y', 'Y'], ['Y', 'Y', 'Y'], ['Y', 'Y', 'Y']]
-        ]
+        self.console = Console()
+        self.prompt = Confirm()
 
-    def reset(self):
-        self.__init__()
+    def clear_screen(self):
+        os.system('clear')
 
-    def rotate_face(self, index):
-        new_face = [['', '', ''], ['', '', ''], ['', '', '']]
-        face = self.cube[index]
-        for row in range(3):
-            for col in range(3):
-                new_face[col][2 - row] = face[row][col]
-        self.cube[index] = new_face
-
-    def invert(self, line):
-        return [line[2], line[1], line[0]]
-
-# face:
-#     T
-#   L F R B
-#     D
-    def rotate(self, movement): #face, direction):
-        if not len(movement) in (1, 2) or movement[0] not in "ULFRBD" :
-            raise ValueError("Invalid movement")
-        face = movement[0]
-        rep = 1
-        if len(movement) == 2:
-            if movement[1] not in "2'":
-                raise ValueError("ratio")
-            rep = 2 if movement[1] == '2' else 3
-
-        for _ in range(rep):
-            if face == 'U':
-                self.rotate_face(self.get_face('U'))
-                line = self.cube[self.get_face('F')][0]
-                self.cube[self.get_face('F')][0] = self.cube[self.get_face('R')][0]
-                self.cube[self.get_face('R')][0] = self.cube[self.get_face('B')][0]
-                self.cube[self.get_face('B')][0] = self.cube[self.get_face('L')][0]
-                self.cube[self.get_face('L')][0] = line
-            if face == 'D':
-                self.rotate_face(self.get_face('D'))
-                line = self.cube[self.get_face('F')][2]
-                self.cube[self.get_face('F')][2] = self.cube[self.get_face('L')][2]
-                self.cube[self.get_face('L')][2] = self.cube[self.get_face('B')][2]
-                self.cube[self.get_face('B')][2] = self.cube[self.get_face('R')][2]
-                self.cube[self.get_face('R')][2] = line
-            if face == 'F':
-                self.rotate_face(self.get_face('F'))
-                line = [self.cube[self.get_face('U')][2][0], self.cube[self.get_face('U')][2][1], self.cube[self.get_face('U')][2][2]]
-                self.cube[self.get_face('U')][2][0] = self.cube[self.get_face('L')][2][2]
-                self.cube[self.get_face('U')][2][1] = self.cube[self.get_face('L')][1][2]
-                self.cube[self.get_face('U')][2][2] = self.cube[self.get_face('L')][0][2]
-                self.cube[self.get_face('L')][0][2] = self.cube[self.get_face('D')][0][0]
-                self.cube[self.get_face('L')][1][2] = self.cube[self.get_face('D')][0][1]
-                self.cube[self.get_face('L')][2][2] = self.cube[self.get_face('D')][0][2]
-                self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('R')][2][0]
-                self.cube[self.get_face('D')][0][1] = self.cube[self.get_face('R')][1][0]
-                self.cube[self.get_face('D')][0][2] = self.cube[self.get_face('R')][0][0]
-                self.cube[self.get_face('R')][0][0] = line[0]
-                self.cube[self.get_face('R')][1][0] = line[1]
-                self.cube[self.get_face('R')][2][0] = line[2]
-            if face == 'B':
-                self.rotate_face(self.get_face('B'))
-                line = [self.cube[self.get_face('U')][0][2], self.cube[self.get_face('U')][0][1], self.cube[self.get_face('U')][0][0]]
-                self.cube[self.get_face('U')][0][0] = self.cube[self.get_face('R')][0][2]
-                self.cube[self.get_face('U')][0][1] = self.cube[self.get_face('R')][1][2]
-                self.cube[self.get_face('U')][0][2] = self.cube[self.get_face('R')][2][2]
-                self.cube[self.get_face('R')][0][2] = self.cube[self.get_face('D')][2][2]
-                self.cube[self.get_face('R')][1][2] = self.cube[self.get_face('D')][2][1]
-                self.cube[self.get_face('R')][2][2] = self.cube[self.get_face('D')][2][0]
-                self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('L')][2][0]
-                self.cube[self.get_face('D')][2][1] = self.cube[self.get_face('L')][1][0]
-                self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('L')][0][0]
-                self.cube[self.get_face('L')][0][0] = line[0]
-                self.cube[self.get_face('L')][1][0] = line[1]
-                self.cube[self.get_face('L')][2][0] = line[2]
-            if face == 'L':
-                self.rotate_face(self.get_face('L'))
-                line = [self.cube[self.get_face('U')][0][0], self.cube[self.get_face('U')][1][0], self.cube[self.get_face('U')][2][0]]
-                self.cube[self.get_face('U')][0][0] = self.cube[self.get_face('B')][2][2]
-                self.cube[self.get_face('U')][1][0] = self.cube[self.get_face('B')][1][2]
-                self.cube[self.get_face('U')][2][0] = self.cube[self.get_face('B')][0][2]
-                self.cube[self.get_face('B')][2][2] = self.cube[self.get_face('D')][0][0]
-                self.cube[self.get_face('B')][1][2] = self.cube[self.get_face('D')][1][0]
-                self.cube[self.get_face('B')][0][2] = self.cube[self.get_face('D')][2][0]
-                self.cube[self.get_face('D')][0][0] = self.cube[self.get_face('F')][0][0]
-                self.cube[self.get_face('D')][1][0] = self.cube[self.get_face('F')][1][0]
-                self.cube[self.get_face('D')][2][0] = self.cube[self.get_face('F')][2][0]
-                self.cube[self.get_face('F')][0][0] = line[0]
-                self.cube[self.get_face('F')][1][0] = line[1]
-                self.cube[self.get_face('F')][2][0] = line[2]
-            if face == 'R':
-                self.rotate_face(self.get_face('R'))
-                line = [self.cube[self.get_face('U')][0][2], self.cube[self.get_face('U')][1][2], self.cube[self.get_face('U')][2][2]]
-                self.cube[self.get_face('U')][0][2] = self.cube[self.get_face('F')][0][2]
-                self.cube[self.get_face('U')][1][2] = self.cube[self.get_face('F')][1][2]
-                self.cube[self.get_face('U')][2][2] = self.cube[self.get_face('F')][2][2]
-                self.cube[self.get_face('F')][0][2] = self.cube[self.get_face('D')][0][2]
-                self.cube[self.get_face('F')][1][2] = self.cube[self.get_face('D')][1][2]
-                self.cube[self.get_face('F')][2][2] = self.cube[self.get_face('D')][2][2]
-                self.cube[self.get_face('D')][0][2] = self.cube[self.get_face('B')][2][0]
-                self.cube[self.get_face('D')][1][2] = self.cube[self.get_face('B')][1][0]
-                self.cube[self.get_face('D')][2][2] = self.cube[self.get_face('B')][0][0]
-                self.cube[self.get_face('B')][0][0] = line[2]
-                self.cube[self.get_face('B')][1][0] = line[1]
-                self.cube[self.get_face('B')][2][0] = line[0]
-
-    def show(self):
-        cube = f"""       {self.get_color(self.cube[self.get_face('U')][0][0])}■[/] {self.get_color(self.cube[self.get_face('U')][0][1])}■[/] {self.get_color(self.cube[self.get_face('U')][0][2])}■[/]
-       {self.get_color(self.cube[self.get_face('U')][1][0])}■[/] {self.get_color(self.cube[self.get_face('U')][1][1])}■[/] {self.get_color(self.cube[self.get_face('U')][1][2])}■[/]
-       {self.get_color(self.cube[self.get_face('U')][2][0])}■[/] {self.get_color(self.cube[self.get_face('U')][2][1])}■[/] {self.get_color(self.cube[self.get_face('U')][2][2])}■[/]
-{self.get_color(self.cube[self.get_face('L')][0][0])}■[/] {self.get_color(self.cube[self.get_face('L')][0][1])}■[/] {self.get_color(self.cube[self.get_face('L')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][0][0])}■[/] {self.get_color(self.cube[self.get_face('F')][0][1])}■[/] {self.get_color(self.cube[self.get_face('F')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][0][0])}■[/] {self.get_color(self.cube[self.get_face('R')][0][1])}■[/] {self.get_color(self.cube[self.get_face('R')][0][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][0][0])}■[/] {self.get_color(self.cube[self.get_face('B')][0][1])}■[/] {self.get_color(self.cube[self.get_face('B')][0][2])}■[/]
-{self.get_color(self.cube[self.get_face('L')][1][0])}■[/] {self.get_color(self.cube[self.get_face('L')][1][1])}■[/] {self.get_color(self.cube[self.get_face('L')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][1][0])}■[/] {self.get_color(self.cube[self.get_face('F')][1][1])}■[/] {self.get_color(self.cube[self.get_face('F')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][1][0])}■[/] {self.get_color(self.cube[self.get_face('R')][1][1])}■[/] {self.get_color(self.cube[self.get_face('R')][1][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][1][0])}■[/] {self.get_color(self.cube[self.get_face('B')][1][1])}■[/] {self.get_color(self.cube[self.get_face('B')][1][2])}■[/]
-{self.get_color(self.cube[self.get_face('L')][2][0])}■[/] {self.get_color(self.cube[self.get_face('L')][2][1])}■[/] {self.get_color(self.cube[self.get_face('L')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('F')][2][0])}■[/] {self.get_color(self.cube[self.get_face('F')][2][1])}■[/] {self.get_color(self.cube[self.get_face('F')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('R')][2][0])}■[/] {self.get_color(self.cube[self.get_face('R')][2][1])}■[/] {self.get_color(self.cube[self.get_face('R')][2][2])}■[/]  {self.get_color(self.cube[self.get_face('B')][2][0])}■[/] {self.get_color(self.cube[self.get_face('B')][2][1])}■[/] {self.get_color(self.cube[self.get_face('B')][2][2])}■[/]
-       {self.get_color(self.cube[self.get_face('D')][0][0])}■[/] {self.get_color(self.cube[self.get_face('D')][0][1])}■[/] {self.get_color(self.cube[self.get_face('D')][0][2])}■[/]
-       {self.get_color(self.cube[self.get_face('D')][1][0])}■[/] {self.get_color(self.cube[self.get_face('D')][1][1])}■[/] {self.get_color(self.cube[self.get_face('D')][1][2])}■[/]
-       {self.get_color(self.cube[self.get_face('D')][2][0])}■[/] {self.get_color(self.cube[self.get_face('D')][2][1])}■[/] {self.get_color(self.cube[self.get_face('D')][2][2])}■[/]"""
-        print("------------ Rubik's Cube ------------")
-        print(Panel(cube, border_style="green", expand=False))
-        print("--------------------------------------")
-
-    def get_color(self, sticker):
+    def _displayBuildingCube(self, cube):
         colors = {'W': '[bright_white]', 'R': '[red3]', 'G': '[chartreuse3]', 'O': '[dark_orange3]', 'B': '[dark_blue]', 'Y': '[yellow2]'}
-        return colors[sticker]
+        display = ""
+        for i in range(3):
+            display += "        "
+            for j in range(3):
+                display += f"{colors[cube[0][i][j]]}■[/] "
+            display += "\n"
+        display += "\n"
+        for i in range(3):
+            for j in range(3):
+                display += f"{colors[cube[1][i][j]]}■[/] "
+            display += "  "
+            for j in range(3):
+                display += f"{colors[cube[2][i][j]]}■[/] "
+            display += "  "
+            for j in range(3):
+                display += f"{colors[cube[3][i][j]]}■[/] "
+            display += "  "
+            for j in range(3):
+                display += f"{colors[cube[4][i][j]]}■[/] "
+            display += "\n"
+        display += "\n"
+        for i in range(3):
+            display += "        "
+            for j in range(3):
+                display += f"{colors[cube[5][i][j]]}■[/] "
+            display += "\n"
+        self.console.print(Panel(display, border_style="green", expand=False))
 
-    def get_face(self, face):
-        faces = {0: 'U', 1: 'L', 2: 'F', 3: 'R', 4: 'B', 5: 'D'}
-        if isinstance(face, int):
-            return faces.get(face)
+    def buildCube(self):
+        cube = [];
+        ok = False
+        while (not ok):
+            confirm_result = self.prompt.ask("Do you want to use the camera to build the cube ?", default=True)
+
+            if confirm_result:
+                cam = Camera()
+                cam.start()
+                try:
+                    cube = cam.getCube()
+                except:
+                    self.console.print("[bold red]An error occured while trying to get the cube from the camera. Please try again.[/bold red]")
+                    want_to_exit = self.prompt.ask("Do you want to continue ?", default=True)
+                    if (not want_to_exit):
+                        return
+                    continue
+            else:
+                cube = [
+                    [['W', 'W', 'W'], ['W', 'W', 'W'], ['W', 'W', 'W']],
+                    [['O', 'O', 'O'], ['O', 'O', 'O'], ['O', 'O', 'O']],
+                    [['G', 'G', 'G'], ['G', 'G', 'G'], ['G', 'G', 'G']],
+                    [['R', 'R', 'R'], ['R', 'R', 'R'], ['R', 'R', 'R']],
+                    [['B', 'B', 'B'], ['B', 'B', 'B'], ['B', 'B', 'B']],
+                    [['Y', 'Y', 'Y'], ['Y', 'Y', 'Y'], ['Y', 'Y', 'Y']]
+                ]
+            i = 0
+            j = 0
+            order = ['Up', 'Left', 'Front', 'Right', 'Back', 'Down']
+            index = 0;
+            while (index < 6):
+                self.clear_screen()
+                self._displayBuildingCube(cube)
+                color = self.console.input(f"[bold magenta]Please enter the colors for the {order[index]} face at position ({i}, {j})[/bold magenta]\n>> ")
+                if color.upper() not in ['W', 'R', 'G', 'O', 'B', 'Y', 'Q'] and color.upper() not in ['WHITE', 'RED', 'GREEN', 'ORANGE', 'BLUE', 'YELLOW', 'QUIT'] and color != '':
+                    self.console.print(f"[bold red]Invalid color : {color}. Please try again.[/bold red]")
+                    want_to_exit = self.prompt.ask("Do you want to continue ?", default=True)
+                    if (not want_to_exit):
+                        return
+                    continue
+                if color.upper() == 'Q' or color.upper() == 'QUIT':
+                    self.console.print("[bold red]Build canceled.[/bold red]")
+                    return
+                if color.upper() == '':
+                    color = cube[index][i][j]
+                cube[index][i][j] = color.upper()[0]
+                self.clear_screen()
+                self._displayBuildingCube(cube)
+                confirm_result = self.prompt.ask(f"Do you want to set the color {color.upper()} for the {order[index]} face at position ({i}, {j}) ?", default=True)
+                if confirm_result:
+                    cube[index][i][j] = color.upper()
+                    j += 1
+                    if j == 3:
+                        j = 0
+                        i += 1
+                        if i == 3:
+                            i = 0
+                            index += 1
+            check = [0, 0, 0, 0, 0, 0]
+            for i in range(6):
+                for j in range(3):
+                    for k in range(3):
+                        if cube[i][j][k] == 'W':
+                            check[0] += 1
+                        elif cube[i][j][k] == 'R':
+                            check[1] += 1
+                        elif cube[i][j][k] == 'G':
+                            check[2] += 1
+                        elif cube[i][j][k] == 'O':
+                            check[3] += 1
+                        elif cube[i][j][k] == 'B':
+                            check[4] += 1
+                        elif cube[i][j][k] == 'Y':
+                            check[5] += 1
+            if check[0] == 9 and check[1] == 9 and check[2] == 9 and check[3] == 9 and check[4] == 9 and check[5] == 9:
+                ok = True
+            else:
+                self.console.print("[bold red]The cube is not correctly built. Please try again.[/bold red]")
+                self.console.print("[bold red]The cube should have 9 white, 9 red, 9 green, 9 orange, 9 blue and 9 yellow squares.[/bold red]")
+                self.console.print(f"[bold red]But the cube has {check[0]} white, {check[1]} red, {check[2]} green, {check[3]} orange, {check[4]} blue and {check[5]} yellow squares.[/bold red]")
+                self.console.print("[bold red]Let's restart.[/bold red]")
+                time.sleep(2)
+        self.rubiksCube = RubiksCube(cube)
+        self.console.print("[bold green]The cube has been successfully built![/bold green]")
+        self.rubiksCube.show()
+        self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+
+    def _loopCubeNotExist(self):
+        self.console.print("[bold magenta] Default | d - To generate a default cube[/bold magenta]")
+        self.console.print("[bold magenta] Build   | b - To build a cube[/bold magenta]")
+        self.console.print("[bold magenta] Quit    | q - To exit the program[/bold magenta]")
+        choice = self.console.input("[bold yellow]Please enter your choice: [/bold yellow]")
+        self.console.print("")
+        if choice.lower() == "d" or choice.lower() == "default":
+            self.rubiksCube = RubiksCube()
+            self.rubiksCube.show()
+            self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+        elif choice.lower() == "b" or choice.lower() == "build":
+            self.buildCube()
+        elif choice.lower() == "q" or choice.lower() == "quit":
+            self.isRunning = False
         else:
-            for index, label in faces.items():
-                if label == face:
-                    return index
-        return None
+            self.console.print(f"[bold red]Invalid choice : {choice}. Please try again.[/bold red]")
+            time.sleep(2)
 
-    def shuffle(self, moves=5):
-        _moves = []
-        all_possible_moves = ['U', 'L', 'F', 'R', 'B', 'D']
+    def _moveCube(self):
         possible_moves = ['U', 'L', 'F', 'R', 'B', 'D']
-        for _ in range(moves):
-            rep = random.randint(1, 3)
-            face = random.choice(possible_moves)
-            move = f"{face}"
-            if rep == 2:
-                move += '2'
-            elif rep == 3:
-                move += "'"
-            _moves.append(move)
-            possible_moves = all_possible_moves.copy()
-            possible_moves.remove(face)
-        for e in _moves:
-            self.rotate(e)
-        return _moves
+        possible_rep = ['', "'", '2']
+        end = False
+        while not end:
+            self.clear_screen()
+            self.rubiksCube.show()
+            moves = self.console.input("[bold yellow]Please enter the moves you want to do on the cube: [/bold yellow]")
+            list = moves.split(" ")
+            for move in list:
+                if len(move) == 1:
+                    if move.upper() not in possible_moves:
+                        self.console.print(f"[bold red]Invalid move : {move}. Please try again.[/bold red]")
+                        continue
+                    self.rubiksCube.rotate(move.upper())
+                elif len(move) == 2:
+                    if move[0].upper() not in possible_moves or move[1] not in possible_rep:
+                        self.console.print(f"[bold red]Invalid move : {move}. Please try again.[/bold red]")
+                        continue
+                    self.rubiksCube.rotate(move[0].upper() + move[1])
+                else:
+                    self.console.print(f"[bold red]Invalid move : {move}. Please try again.[/bold red]")
+                    continue
+            self.rubiksCube.show()
+            end = not self.prompt.ask("Do you want to continue ?", default=True)
 
-    def do_move(self, move):
-        face = move[0]
-        if len(move) == 1:
-            self.rotate(face, 'clockwise')
-        elif move[1] == '2':
-            self.rotate(face, 'clockwise')
-            self.rotate(face, 'clockwise')
-        elif move[1] == "'":
-            self.rotate(face, 'counter-clockwise')
+    def _loopCubeExist(self):
+        self.console.print("[bold magenta] Move    | m - To do some moves on the cube[/bold magenta]")
+        self.console.print("[bold magenta] Solve   | s - To solve the cube[/bold magenta]")
+        self.console.print("[bold magenta] Shuffle | x - To shuffle the cube[/bold magenta]")
+        self.console.print("[bold magenta] Reset   | r - To reset the cube[/bold magenta]")
+        self.console.print("[bold magenta] View    | v - To view the cube[/bold magenta]")
+        self.console.print("[bold magenta] Quit    | q - To exit the program[/bold magenta]")
+        choice = self.console.input("[bold yellow]Please enter your choice: [/bold yellow]")
+        self.console.print("")
+        if choice.lower() == "m" or choice.lower() == "move":
+            self._moveCube()
+        elif choice.lower() == "s" or choice.lower() == "solve":
+            moves = self.rubiksCube.solve()
+            recap = ""
+            for i in range(len(moves)):
+                recap += moves[i]
+                if i != len(moves) - 1:
+                    recap += " "
+            self.console.print(f"[bold green]The cube has been solved with the following moves[/bold green]\n>> {recap}")
+            self.rubiksCube.show()
+            self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+        elif choice.lower() == "x" or choice.lower() == "shuffle":
+            moves = self.console.input("[bold yellow]Please enter the number of moves you want to shuffle the cube with: [/bold yellow]")
+            if moves.isdigit() and int(moves) > 0:
+                self.console.print(f"[bold green]Shuffling the cube with {moves} moves...[/bold green]")
+                list = self.rubiksCube.shuffle(int(moves))
+                recap = ""
+                for i in range(len(list)):
+                    recap += list[i]
+                    if i != len(list) - 1:
+                        recap += " "
+                self.console.print(f">> {recap}")
+                self.rubiksCube.show()
+                self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+            else:
+                self.console.print("[bold red]Invalid number of moves. Please try again.[/bold red]")
+                time.sleep(2)
+        elif choice.lower() == "r" or choice.lower() == "reset":
+            self.rubiksCube.reset()
+            self.rubiksCube.show()
+            self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+        elif choice.lower() == "v" or choice.lower() == "view":
+            self.rubiksCube.show()
+            self.console.input("\nPress [bold yellow]Enter[/bold yellow] to continue...")
+        elif choice.lower() == "q" or choice.lower() == "quit":
+            self.isRunning = False
+        else:
+            self.console.print(f"[bold red]Invalid choice : {choice}. Please try again.[/bold red]")
+            time.sleep(2)
 
-    def solve(self):
-        sequence    = "URFDLB"
-        values      = "URFDLB"
-        corespond   = "WRGYOB"
-
-        faces = [self.cube[self.get_face(e)] for e in sequence]
-
-        faces = ''.join([''.join([''.join(y) for y in x]) for x in faces])
-
-        for i in range(len(corespond)):
-            faces = faces.replace(corespond[i], values[i])
-
-        result = None
-
-        try:
-            result = god_solve(faces)
-        except:
-            pass
-        if not result:
-            return None
-
-        for e in result.split(' '):
-            self.rotate(e)
-        return result.split(' ')
+    def run(self):
+        self.clear_screen()
+        while self.isRunning:
+            self.console.print("[bold magenta]Welcome to Epicube Solver![/bold magenta]")
+            self.console.print("[bold magenta]Please choose an option from the following:[/bold magenta]")
+            if self.rubiksCube is None:
+                self._loopCubeNotExist()
+            else:
+                self._loopCubeExist()
+            self.clear_screen()
 
 def main():
-    cube = RubiksCube()
-
-    cube.show()
-
-    if len(sys.argv) - 1:
-        if len(sys.argv) - 2:
-            sequence = sys.argv[1:]
-        else:
-            sequence = sys.argv[1].split(' ')
-
-        for e in sequence:
-            cube.rotate(e)
-        print(' '.join(sequence))
-    else:
-        print(' '.join(cube.shuffle(random.randint(10, 20))))
-    cube.show()
-    print(' '.join(cube.solve()))
-    cube.show()
+    solver = EpicubeSolver()
+    solver.run()
 
 if __name__ == "__main__":
     main()
