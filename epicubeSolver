@@ -192,6 +192,7 @@ class EpicubeSolver:
             end = not self.prompt.ask("Do you want to continue ?", default=True)
 
     def _loopCubeExist(self):
+        self.console.print("[bold magenta] Destroy | d - To destroy the cube[/bold magenta]")
         self.console.print("[bold magenta] Move    | m - To do some moves on the cube[/bold magenta]")
         self.console.print("[bold magenta] Solve   | s - To solve the cube[/bold magenta]")
         self.console.print("[bold magenta] Shuffle | x - To shuffle the cube[/bold magenta]")
@@ -200,7 +201,9 @@ class EpicubeSolver:
         self.console.print("[bold magenta] Quit    | q - To exit the program[/bold magenta]")
         choice = self.console.input("[bold yellow]Please enter your choice: [/bold yellow]")
         self.console.print("")
-        if choice.lower() == "m" or choice.lower() == "move":
+        if choice.lower() == "d" or choice.lower() == "destroy":
+            self.rubiksCube = None
+        elif choice.lower() == "m" or choice.lower() == "move":
             self._moveCube()
         elif choice.lower() == "s" or choice.lower() == "solve":
             moves = self.rubiksCube.solve()
